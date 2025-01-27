@@ -1,0 +1,46 @@
+name: Terraform CI - Checar Database
+
+on:
+ push:
+   branches:
+     - 'feature/**'
+     - 'hotfix/**'
+     - 'chore/**'
+ pull_request:
+   branches:
+     - main
+  
+jobs:
+  terraform:
+    name: Terraform CI Pipeline
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+    - name: Checkout Código
+      uses: actions/checkout@v3
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+    
+    - name: Terraform Init
+      working-directory: src/terraform/
+      run: terraform init -backend=false
+
+    - name: Terraform Validate
+      working-directory: src/terraform/
+      run: terraform validate
+
+    # - name: Terraform Security Check (tfsec)
+    #   if: github.event_name == 'pull_request'
+    #   uses: aquasecurity/tfsec-action@v1.0.0
+    #   with:
+    #     working_directory: src/terraform/
+
+    - name: Check Formatting
+      working-directory: src/terraform/
+      run: terraform fmt -check
+      
