@@ -2,15 +2,6 @@ resource "aws_api_gateway_rest_api" "api_gateway" {
   name = "api-gateway-easyorder"
 }
 
-# Autorizador - Cognito
-resource "aws_api_gateway_authorizer" "cognito_authorizer" {
-  rest_api_id = aws_api_gateway_rest_api.api_gateway.id
-  name        = "cognito_authorizer"
-  type        = "COGNITO_USER_POOLS"
-  provider_arns = [
-    aws_cognito_user_pool.easyorder_admin_pool.arn
-  ]
-}
 
 # GET / - Recurso raiz já existente - adicionando somente o método
 resource "aws_api_gateway_method" "root_get" {
@@ -19,62 +10,15 @@ resource "aws_api_gateway_method" "root_get" {
   http_method   = "GET"
   authorization = "NONE"
 }
-# Integração HTTP para o backend real
+#Integração HTTP para o backend real
 resource "aws_api_gateway_integration" "root_get_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
   resource_id             = aws_api_gateway_rest_api.api_gateway.root_resource_id
   http_method             = aws_api_gateway_method.root_get.http_method
-  type                    = "HTTP"
-  uri                     = var.lb_endpoint # Substitua pelo URL real
-  integration_http_method = "GET"
-}
-
-# /health - Recurso
-resource "aws_api_gateway_resource" "health" {
-  rest_api_id = aws_api_gateway_rest_api.api_gateway.id
-  parent_id   = aws_api_gateway_rest_api.api_gateway.root_resource_id
-  path_part   = "health"
-}
-# Método GET para /health
-resource "aws_api_gateway_method" "health_get" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.health.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
-# Integração HTTP para o backend real
-resource "aws_api_gateway_integration" "health_get_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.health.id
-  http_method             = aws_api_gateway_method.health_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/health" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_cliente}/"
   integration_http_method = "GET"
 }
-
-# /doc - Recurso
-resource "aws_api_gateway_resource" "docs" {
-  rest_api_id = aws_api_gateway_rest_api.api_gateway.id
-  parent_id   = aws_api_gateway_rest_api.api_gateway.root_resource_id
-  path_part   = "doc"
-}
-# Método GET para /docs
-resource "aws_api_gateway_method" "docs_get" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.docs.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
-# Integração HTTP para o backend real
-resource "aws_api_gateway_integration" "docs_get_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.docs.id
-  http_method             = aws_api_gateway_method.docs_get.http_method
-  type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/doc" # Substitua pelo URL real
-  integration_http_method = "GET"
-}
-
 
 # /cliente - recurso pai
 resource "aws_api_gateway_resource" "endpoints_cliente" {
@@ -99,7 +43,7 @@ resource "aws_api_gateway_integration" "cliente_cadastrar_integration" {
   resource_id             = aws_api_gateway_resource.cliente_cadastrar.id
   http_method             = aws_api_gateway_method.cliente_cadastrar.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/cliente/cadastrar"
+  uri                     = "http://${local.load_balancer_cliente}/cliente/cadastrar"
   integration_http_method = "POST"
 }
 
@@ -120,7 +64,7 @@ resource "aws_api_gateway_integration" "cliente_atualizar_integration" {
   resource_id             = aws_api_gateway_resource.cliente_atualizar.id
   http_method             = aws_api_gateway_method.cliente_atualizar.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/cliente/atualizar" # Altere para o URL real
+  uri                     = "http://${local.load_balancer_cliente}/cliente/atualizar" # Altere para o URL real
   integration_http_method = "PUT"
 }
 
@@ -134,19 +78,18 @@ resource "aws_api_gateway_method" "cliente_listar" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.cliente_listar.id
   http_method   = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
 }
 resource "aws_api_gateway_integration" "cliente_listar_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
   resource_id             = aws_api_gateway_resource.cliente_listar.id
   http_method             = aws_api_gateway_method.cliente_listar.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/cliente/listar" # Altere para o URL real
+  uri                     = "http://${local.load_balancer_cliente}/cliente/listar" # Altere para o URL real
   integration_http_method = "GET"
 }
 
-# /cliente/auth/{cpf} - sem autenticação, integração com Lambda
+# /cliente/auth/{cpf} - sem autenticação
 resource "aws_api_gateway_resource" "cliente_auth" {
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   parent_id   = aws_api_gateway_resource.endpoints_cliente.id
@@ -162,17 +105,20 @@ resource "aws_api_gateway_method" "cliente_auth_cpf" {
   resource_id   = aws_api_gateway_resource.cliente_auth_cpf.id
   http_method   = "GET"
   authorization = "NONE"
+  request_parameters = {
+    "method.request.path.cpf" = true
+  }
 }
 resource "aws_api_gateway_integration" "cliente_auth_cpf_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
   resource_id             = aws_api_gateway_resource.cliente_auth_cpf.id
   http_method             = aws_api_gateway_method.cliente_auth_cpf.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.cpf_lookup.invoke_arn
-  depends_on = [
-    aws_api_gateway_method.cliente_auth_cpf,
-  ]
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${local.load_balancer_cliente}/cliente/auth/{cpf}" # Substitua pelo URL real
+  request_parameters = {
+    "integration.request.path.cpf" = "method.request.path.cpf"
+  }
 }
 
 # /pagamento/ - recurso pai
@@ -200,7 +146,7 @@ resource "aws_api_gateway_integration" "pagamento_webhook_integration" {
   resource_id             = aws_api_gateway_resource.pagamento_webhook.id
   http_method             = aws_api_gateway_method.pagamento_webhook_post.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pagamento/webhook" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/pagamento/webhook" # Substitua pelo URL real
   integration_http_method = "POST"
 }
 
@@ -223,8 +169,7 @@ resource "aws_api_gateway_method" "pagamento_listar_transacoes_pedidoId" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.pagamento_listar_transacoes_pedidoId.id
   http_method   = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
   request_parameters = {
     "method.request.path.pedidoId" = true # Requer o parâmetro pedidoId
   }
@@ -235,7 +180,7 @@ resource "aws_api_gateway_integration" "pagamento_listar_transacoes_pedidoId_int
   resource_id             = aws_api_gateway_resource.pagamento_listar_transacoes_pedidoId.id
   http_method             = aws_api_gateway_method.pagamento_listar_transacoes_pedidoId.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pagamento/listar-transacoes/{pedidoId}" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/pagamento/listar-transacoes/{pedidoId}" # Substitua pelo URL real
   integration_http_method = "GET"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -261,7 +206,7 @@ resource "aws_api_gateway_integration" "pedido_post_integration" {
   resource_id             = aws_api_gateway_resource.pedido.id
   http_method             = aws_api_gateway_method.pedido_post.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/pedido" # Substitua pelo URL real
   integration_http_method = "POST"
 }
 
@@ -282,19 +227,18 @@ resource "aws_api_gateway_method" "pedido_listar_statusPedido_get" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.pedido_listar_statusPedido.id
   http_method   = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
   request_parameters = {
     "method.request.path.statusPedido" = true # Requer o parâmetro statusPedido
   }
 }
-# Integração HTTP para o backend real
+# # Integração HTTP para o backend real
 resource "aws_api_gateway_integration" "pedido_listar_statusPedido_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
   resource_id             = aws_api_gateway_resource.pedido_listar_statusPedido.id
   http_method             = aws_api_gateway_method.pedido_listar_statusPedido_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/listar/{statusPedido}" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/pedido/listar/{statusPedido}" # Substitua pelo URL real
   integration_http_method = "GET"
   request_parameters = {
     "integration.request.path.statusPedido" = "method.request.path.statusPedido"
@@ -313,8 +257,7 @@ resource "aws_api_gateway_method" "pedido_pedidoId_get" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.pedido_pedidoId.id
   http_method   = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
   request_parameters = {
     "method.request.path.pedidoId" = true # Requer o parâmetro pedidoId
   }
@@ -325,7 +268,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_integration" {
   resource_id             = aws_api_gateway_resource.pedido_pedidoId.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/pedido/{pedidoId}" # Substitua pelo URL real
   integration_http_method = "GET"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -343,8 +286,7 @@ resource "aws_api_gateway_method" "pedido_pedidoId_cancelar_put" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.pedido_pedidoId_cancelar.id
   http_method   = "PUT"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
   request_parameters = {
     "method.request.path.pedidoId" = true # Requer o parâmetro pedidoId
   }
@@ -355,7 +297,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_cancelar_integration" {
   resource_id             = aws_api_gateway_resource.pedido_pedidoId_cancelar.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_cancelar_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}/cancelar" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/pedido/{pedidoId}/cancelar" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -384,7 +326,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_confirmacao_pagamento_in
   resource_id             = aws_api_gateway_resource.pedido_pedidoId_confirmacao_pagamento.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_confirmacao_pagamento_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}/confirmacao-pagamento" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/pedido/{pedidoId}/confirmacao-pagamento" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -413,7 +355,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_checkout_integration" {
   resource_id             = aws_api_gateway_resource.pedido_pedidoId_checkout.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_checkout_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}/checkout" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/pedido/{pedidoId}/checkout" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -442,7 +384,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_combo_integration" {
   resource_id             = aws_api_gateway_resource.pedido_pedidoId_combo.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_combo_post.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}/combo" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/pedido/{pedidoId}/combo" # Substitua pelo URL real
   integration_http_method = "POST"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -472,7 +414,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_combo_comboId_integratio
   resource_id             = aws_api_gateway_resource.pedido_pedidoId_combo_comboId.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_combo_comboId_delete.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}/combo/{comboId}" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/pedido/{pedidoId}/combo/{comboId}" # Substitua pelo URL real
   integration_http_method = "DELETE"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -504,8 +446,7 @@ resource "aws_api_gateway_method" "preparacao_pedido_proximo_get" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.preparacao_pedido_proximo.id
   http_method   = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
 }
 # Integração HTTP para o backend real
 resource "aws_api_gateway_integration" "preparacao_pedido_proximo_integration" {
@@ -513,7 +454,7 @@ resource "aws_api_gateway_integration" "preparacao_pedido_proximo_integration" {
   resource_id             = aws_api_gateway_resource.preparacao_pedido_proximo.id
   http_method             = aws_api_gateway_method.preparacao_pedido_proximo_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/preparacao/proximo" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/preparacao/proximo" # Substitua pelo URL real
   integration_http_method = "GET"
 }
 
@@ -534,8 +475,7 @@ resource "aws_api_gateway_method" "preparacao_pedido_pedidoId_iniciar_preparacao
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.preparacao_pedido_pedidoId_iniciar_preparacao.id
   http_method   = "PUT"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
   request_parameters = {
     "method.request.path.pedidoId" = true
   }
@@ -546,7 +486,7 @@ resource "aws_api_gateway_integration" "preparacao_pedido_pedidoId_iniciar_prepa
   resource_id             = aws_api_gateway_resource.preparacao_pedido_pedidoId_iniciar_preparacao.id
   http_method             = aws_api_gateway_method.preparacao_pedido_pedidoId_iniciar_preparacao_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/preparacao/pedido/{pedidoId}/iniciar-preparacao" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/preparacao/pedido/{pedidoId}/iniciar-preparacao" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -564,8 +504,7 @@ resource "aws_api_gateway_method" "preparacao_pedido_pedidoId_finalizar_preparac
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.preparacao_pedido_pedidoId_finalizar_preparacao.id
   http_method   = "PUT"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
   request_parameters = {
     "method.request.path.pedidoId" = true
   }
@@ -576,7 +515,7 @@ resource "aws_api_gateway_integration" "preparacao_pedido_pedidoId_finalizar_pre
   resource_id             = aws_api_gateway_resource.preparacao_pedido_pedidoId_finalizar_preparacao.id
   http_method             = aws_api_gateway_method.preparacao_pedido_pedidoId_finalizar_preparacao_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/preparacao/pedido/{pedidoId}/finalizar-preparacao" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/preparacao/pedido/{pedidoId}/finalizar-preparacao" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -594,8 +533,7 @@ resource "aws_api_gateway_method" "preparacao_pedido_pedidoId_entregar_put" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.preparacao_pedido_pedidoId_entregar.id
   http_method   = "PUT"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
   request_parameters = {
     "method.request.path.pedidoId" = true
   }
@@ -606,7 +544,7 @@ resource "aws_api_gateway_integration" "preparacao_pedido_pedidoId_entregar_inte
   resource_id             = aws_api_gateway_resource.preparacao_pedido_pedidoId_entregar.id
   http_method             = aws_api_gateway_method.preparacao_pedido_pedidoId_entregar_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/preparacao/pedido/{pedidoId}/entregar" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/preparacao/pedido/{pedidoId}/entregar" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -630,8 +568,7 @@ resource "aws_api_gateway_method" "produto_listar_get" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.produto_listar.id
   http_method   = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
 }
 # Integração HTTP para o backend real
 resource "aws_api_gateway_integration" "produto_listar_integration" {
@@ -639,7 +576,7 @@ resource "aws_api_gateway_integration" "produto_listar_integration" {
   resource_id             = aws_api_gateway_resource.produto_listar.id
   http_method             = aws_api_gateway_method.produto_listar_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/listar" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_produto}/produto/listar" # Substitua pelo URL real
   integration_http_method = "GET"
 }
 
@@ -660,8 +597,7 @@ resource "aws_api_gateway_method" "produto_buscar_id_get" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.produto_buscar_id.id
   http_method   = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
   request_parameters = {
     "method.request.path.id" = true # Requer o parâmetro id
   }
@@ -672,7 +608,7 @@ resource "aws_api_gateway_integration" "produto_buscar_id_integration" {
   resource_id             = aws_api_gateway_resource.produto_buscar_id.id
   http_method             = aws_api_gateway_method.produto_buscar_id_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/buscar/{id}" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_produto}/produto/buscar/{id}" # Substitua pelo URL real
   integration_http_method = "GET"
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -690,8 +626,7 @@ resource "aws_api_gateway_method" "produto_listar_categoria_get" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.produto_listar_categoria.id
   http_method   = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
   request_parameters = {
     "method.request.path.categoria" = true # Requer o parâmetro categoria
   }
@@ -702,7 +637,7 @@ resource "aws_api_gateway_integration" "produto_listar_categoria_integration" {
   resource_id             = aws_api_gateway_resource.produto_listar_categoria.id
   http_method             = aws_api_gateway_method.produto_listar_categoria_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/listar/{categoria}" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_produto}/produto/listar/{categoria}" # Substitua pelo URL real
   integration_http_method = "GET"
   request_parameters = {
     "integration.request.path.categoria" = "method.request.path.categoria"
@@ -726,8 +661,7 @@ resource "aws_api_gateway_method" "produto_remover_id_delete" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.produto_remover_id.id
   http_method   = "DELETE"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
   request_parameters = {
     "method.request.path.id" = true # Requer o parâmetro id
   }
@@ -738,7 +672,7 @@ resource "aws_api_gateway_integration" "produto_remover_id_integration" {
   resource_id             = aws_api_gateway_resource.produto_remover_id.id
   http_method             = aws_api_gateway_method.produto_remover_id_delete.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/remover/{id}" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_produto}/produto/remover/{id}" # Substitua pelo URL real
   integration_http_method = "DELETE"
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -757,8 +691,7 @@ resource "aws_api_gateway_method" "produto_cadastrar_post" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.produto_cadastrar.id
   http_method   = "POST"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
 }
 # Integração HTTP para o backend real
 resource "aws_api_gateway_integration" "produto_cadastrar_integration" {
@@ -766,7 +699,7 @@ resource "aws_api_gateway_integration" "produto_cadastrar_integration" {
   resource_id             = aws_api_gateway_resource.produto_cadastrar.id
   http_method             = aws_api_gateway_method.produto_cadastrar_post.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/cadastrar" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_produto}/produto/cadastrar" # Substitua pelo URL real
   integration_http_method = "POST"
 }
 
@@ -781,8 +714,7 @@ resource "aws_api_gateway_method" "produto_atualizar_put" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.produto_atualizar.id
   http_method   = "PUT"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
+  authorization = "NONE"
 }
 # Integração HTTP para o backend real
 resource "aws_api_gateway_integration" "produto_atualizar_integration" {
@@ -790,7 +722,7 @@ resource "aws_api_gateway_integration" "produto_atualizar_integration" {
   resource_id             = aws_api_gateway_resource.produto_atualizar.id
   http_method             = aws_api_gateway_method.produto_atualizar_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/atualizar" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_produto}/produto/atualizar" # Substitua pelo URL real
   integration_http_method = "PUT"
 }
 
@@ -801,12 +733,8 @@ resource "aws_api_gateway_deployment" "api_deployment" {
   # Certifique-se de que o deployment dependa de todos os métodos e integrações
   depends_on = [
     # Métodos e integrações na raiz
-    #aws_api_gateway_method.root_get,
-    #aws_api_gateway_integration.root_get_integration,
-    aws_api_gateway_method.health_get,
-    aws_api_gateway_integration.health_get_integration,
-    aws_api_gateway_method.docs_get,
-    aws_api_gateway_integration.docs_get_integration,
+    aws_api_gateway_method.root_get,
+    aws_api_gateway_integration.root_get_integration,
 
     # Métodos e integrações de clientes
     aws_api_gateway_method.cliente_cadastrar,
@@ -815,8 +743,8 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     aws_api_gateway_integration.cliente_atualizar_integration,
     aws_api_gateway_method.cliente_listar,
     aws_api_gateway_integration.cliente_listar_integration,
-    #aws_api_gateway_method.cliente_auth_cpf,
-    #aws_api_gateway_integration.cliente_auth_cpf_integration, 
+    aws_api_gateway_method.cliente_auth_cpf,
+    aws_api_gateway_integration.cliente_auth_cpf_integration,
 
     # Métodos e integrações de pagamentos
     aws_api_gateway_method.pagamento_webhook_post,
@@ -871,9 +799,6 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     create_before_destroy = true
   }
 
-  triggers = {
-    redeployment = sha1(jsonencode(aws_api_gateway_integration.cliente_auth_cpf_integration))
-  }
 }
 
 resource "aws_api_gateway_stage" "api_stage" {
@@ -883,13 +808,6 @@ resource "aws_api_gateway_stage" "api_stage" {
   depends_on    = [aws_api_gateway_deployment.api_deployment]
 }
 
-resource "aws_lambda_permission" "allow_api_gateway" {
-  statement_id  = "AllowExecutionFromAPIGateway"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.cpf_lookup.arn
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.api_gateway.execution_arn}/*/*"
-}
 
 # Outputs API Gateway
 output "rest_api_id" {
@@ -898,8 +816,4 @@ output "rest_api_id" {
 
 output "rest_api_url" {
   value = aws_api_gateway_stage.api_stage.invoke_url
-}
-
-output "lambda_endpoint_url" {
-  value = "https://${aws_api_gateway_rest_api.api_gateway.id}.execute-api.${var.region}.amazonaws.com/${aws_api_gateway_stage.api_stage.stage_name}/${aws_lambda_function.cpf_lookup.function_name}"
 }

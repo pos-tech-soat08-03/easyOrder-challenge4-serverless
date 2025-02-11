@@ -2,46 +2,13 @@ data "aws_iam_role" "labrole" {
   name = "LabRole"
 }
 
-#variable "backendBucketVoclabs" {
-#  description = "Bucket para armazenamento de arquivos de backend"
-#}
-
 variable "accountIdVoclabs" {
   description = "ID da conta AWS"
 }
 
-
-# variable "accessConfig" {
-#   default = "API_AND_CONFIG_MAP"
-# }
-# variable "clusterName" {
-#   default = "easyorder"
-# }
-# variable "instanceType" {
-#   default = "t3.medium"
-# }
-# variable "policyArn" {
-#   default = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-# }
-
-
-# variable "bucket" {
-#   description = "The S3 bucket to store the Terraform state file"
-#   #default     = "terraform-state-easyorder"
-# }
-# variable "key" {
-#   description = "The S3 key to store the Terraform state file"
-#   #default     = "easyorder-infra/terraform.tfstate"
-# }
 variable "region" {
   description = "The S3 region to store the Terraform state file"
   default     = "us-east-1"
-}
-
-variable "bucket_database" {
-}
-
-variable "key_database" {
 }
 
 variable "bucket_infra" {
@@ -50,15 +17,15 @@ variable "bucket_infra" {
 variable "key_infra" {
 }
 
-
-data "terraform_remote_state" "easyorder-database" {
-  backend = "s3"
-  config = {
-    bucket = var.bucket_database
-    key    = var.key_database
-    region = var.region
-  }
+variable "key_cliente_app" {
 }
+
+variable "key_produto_app" {
+}
+
+variable "key_core_app" {
+}
+
 
 data "terraform_remote_state" "easyorder-infra" {
   backend = "s3"
@@ -69,12 +36,25 @@ data "terraform_remote_state" "easyorder-infra" {
   }
 }
 
-# variable "rds_host" {}
-# variable "db_username" {}
-# variable "db_password" {}
-# variable "db_name" {}
+data "aws_s3_bucket_object" "cliente_app_data" {
+  bucket = var.bucket_infra
+  key    = var.key_cliente_app
+}
+data "aws_s3_bucket_object" "produto_app_data" {
+  bucket = var.bucket_infra
+  key    = var.key_produto_app
+}
+data "aws_s3_bucket_object" "core_app_data" {
+  bucket = var.bucket_infra
+  key    = var.key_core_app
+}
 
-variable "lb_endpoint" {
-  type    = string
-  default = "http://a79279f5efe364871a2203d0c5a36801-1185303877.us-east-1.elb.amazonaws.com"
-} 
+locals {
+  cliente_app_data      = jsondecode(data.aws_s3_bucket_object.cliente_app_data.body)
+  load_balancer_cliente = local.cliente_app_data.LoadBalancerHostname
+  produto_app_data      = jsondecode(data.aws_s3_bucket_object.produto_app_data.body)
+  load_balancer_produto = local.produto_app_data.LoadBalancerHostname
+  core_app_data         = jsondecode(data.aws_s3_bucket_object.core_app_data.body)
+  load_balancer_core    = local.core_app_data.LoadBalancerHostname
+}
+
