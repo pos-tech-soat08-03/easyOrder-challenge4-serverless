@@ -50,11 +50,11 @@ data "aws_s3_bucket_object" "core_app_data" {
 }
 
 locals {
-  cliente_app_data       = jsondecode(data.aws_s3_bucket_object.cliente_app_data.body)
+  cliente_app_data      = jsondecode(data.aws_s3_bucket_object.cliente_app_data.body)
   load_balancer_cliente = local.cliente_app_data.LoadBalancerHostname
-  produto_app_data       = jsondecode(data.aws_s3_bucket_object.produto_app_data.body)
+  produto_app_data      = jsondecode(data.aws_s3_bucket_object.produto_app_data.body)
   load_balancer_produto = local.produto_app_data.LoadBalancerHostname
-  core_app_data       = jsondecode(data.aws_s3_bucket_object.core_app_data.body)
-  load_balancer_core = local.core_app_data.LoadBalancerHostname
+  core_app_data         = jsondecode(data.aws_s3_bucket_object.core_app_data.body)
+  load_balancer_core    = local.core_app_data.LoadBalancerHostname
 }
 
