@@ -27,11 +27,15 @@ O workflow de CI é acionado a cada push no repositório, e executa as seguintes
 
 [As ultimas execuções do CI podem ser visualizadas nesse link](https://github.com/pos-tech-soat08-03/easyOrder-challenge4-serverless/actions/workflows/terraform-ci.yml)
 
+![Etapas do CI](docs/etapas-ci.png)
+
 ### CD - Continuous Deployment
 
 O workflow de CD é acionado manualmente, e executa as seguintes etapas:
 
 [As ultimas execuções do CD podem ser visualizadas nesse link](https://github.com/pos-tech-soat08-03/easyOrder-challenge4-serverless/actions/workflows/terraform-cd.yml)
+
+![Etapas do CD](docs/etapas-cd.png)
 
 ## Subindo os recursos Serverless com o Github Actions (Produção)
 
