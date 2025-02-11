@@ -744,7 +744,7 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     aws_api_gateway_method.cliente_listar,
     aws_api_gateway_integration.cliente_listar_integration,
     aws_api_gateway_method.cliente_auth_cpf,
-    aws_api_gateway_integration.cliente_auth_cpf_integration, 
+    aws_api_gateway_integration.cliente_auth_cpf_integration,
 
     # Métodos e integrações de pagamentos
     aws_api_gateway_method.pagamento_webhook_post,

@@ -1,6 +1,6 @@
 
 # Repositório dedicado para Recursos Serverless
-- Inclui a estrutura de API Gateway, Cognito e Lambda
+- Inclui a estrutura de API Gateway
 - Infraestrutura como código (IaC) com Terraform
 - Utiliza Github Actions para CI/CD
 - Documentação e guias de implementação
