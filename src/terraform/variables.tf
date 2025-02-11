@@ -17,6 +17,16 @@ variable "bucket_infra" {
 variable "key_infra" {
 }
 
+variable "key_cliente_app" {
+}
+
+variable "key_produto_app" {
+}
+
+variable "key_core_app" {
+}
+
+
 data "terraform_remote_state" "easyorder-infra" {
   backend = "s3"
   config = {
@@ -26,7 +36,15 @@ data "terraform_remote_state" "easyorder-infra" {
   }
 }
 
+data "aws_s3_bucket_object" "cliente_app_data" {
+  bucket = var.bucket_infra
+  key    = var.key_cliente_app
+}
+locals {
+  cliente_app_configs = jsondecode(data.aws_s3_bucket_object.cliente_app_data.body)
+}
+
 variable "lb_endpoint" {
   type    = string
-  default = "http://example.com"
+  default = cliente_app_configs.LoadBalancerHostname
 } 
