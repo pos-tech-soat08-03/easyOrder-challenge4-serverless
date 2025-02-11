@@ -46,7 +46,7 @@ resource "aws_api_gateway_integration" "cliente_cadastrar_integration" {
   resource_id             = aws_api_gateway_resource.cliente_cadastrar.id
   http_method             = aws_api_gateway_method.cliente_cadastrar.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/cliente/cadastrar"
+  uri                     = "https://${local.load_balancer_hostname}/cliente/cadastrar"
   integration_http_method = "POST"
 }
 
@@ -67,7 +67,7 @@ resource "aws_api_gateway_integration" "cliente_atualizar_integration" {
   resource_id             = aws_api_gateway_resource.cliente_atualizar.id
   http_method             = aws_api_gateway_method.cliente_atualizar.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/cliente/atualizar" # Altere para o URL real
+  uri                     = "https://${local.load_balancer_hostname}/cliente/atualizar" # Altere para o URL real
   integration_http_method = "PUT"
 }
 
@@ -88,7 +88,7 @@ resource "aws_api_gateway_integration" "cliente_listar_integration" {
   resource_id             = aws_api_gateway_resource.cliente_listar.id
   http_method             = aws_api_gateway_method.cliente_listar.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/cliente/listar" # Altere para o URL real
+  uri                     = "https://${local.load_balancer_hostname}/cliente/listar" # Altere para o URL real
   integration_http_method = "GET"
 }
 
@@ -118,7 +118,7 @@ resource "aws_api_gateway_integration" "cliente_auth_cpf_integration" {
   http_method             = aws_api_gateway_method.cliente_auth_cpf.http_method
   integration_http_method = "GET"
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/cliente/auth/{cpf}" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/cliente/auth/{cpf}" # Substitua pelo URL real
   request_parameters = {
     "integration.request.path.cpf" = "method.request.path.cpf"
   }
@@ -149,7 +149,7 @@ resource "aws_api_gateway_integration" "pagamento_webhook_integration" {
   resource_id             = aws_api_gateway_resource.pagamento_webhook.id
   http_method             = aws_api_gateway_method.pagamento_webhook_post.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pagamento/webhook" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/pagamento/webhook" # Substitua pelo URL real
   integration_http_method = "POST"
 }
 
@@ -183,7 +183,7 @@ resource "aws_api_gateway_integration" "pagamento_listar_transacoes_pedidoId_int
   resource_id             = aws_api_gateway_resource.pagamento_listar_transacoes_pedidoId.id
   http_method             = aws_api_gateway_method.pagamento_listar_transacoes_pedidoId.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pagamento/listar-transacoes/{pedidoId}" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/pagamento/listar-transacoes/{pedidoId}" # Substitua pelo URL real
   integration_http_method = "GET"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -209,7 +209,7 @@ resource "aws_api_gateway_integration" "pedido_post_integration" {
   resource_id             = aws_api_gateway_resource.pedido.id
   http_method             = aws_api_gateway_method.pedido_post.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/pedido" # Substitua pelo URL real
   integration_http_method = "POST"
 }
 
@@ -241,7 +241,7 @@ resource "aws_api_gateway_integration" "pedido_listar_statusPedido_integration" 
   resource_id             = aws_api_gateway_resource.pedido_listar_statusPedido.id
   http_method             = aws_api_gateway_method.pedido_listar_statusPedido_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/listar/{statusPedido}" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/pedido/listar/{statusPedido}" # Substitua pelo URL real
   integration_http_method = "GET"
   request_parameters = {
     "integration.request.path.statusPedido" = "method.request.path.statusPedido"
@@ -271,7 +271,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_integration" {
   resource_id             = aws_api_gateway_resource.pedido_pedidoId.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/pedido/{pedidoId}" # Substitua pelo URL real
   integration_http_method = "GET"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -300,7 +300,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_cancelar_integration" {
   resource_id             = aws_api_gateway_resource.pedido_pedidoId_cancelar.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_cancelar_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}/cancelar" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/pedido/{pedidoId}/cancelar" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -329,7 +329,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_confirmacao_pagamento_in
   resource_id             = aws_api_gateway_resource.pedido_pedidoId_confirmacao_pagamento.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_confirmacao_pagamento_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}/confirmacao-pagamento" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/pedido/{pedidoId}/confirmacao-pagamento" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -358,7 +358,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_checkout_integration" {
   resource_id             = aws_api_gateway_resource.pedido_pedidoId_checkout.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_checkout_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}/checkout" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/pedido/{pedidoId}/checkout" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -387,7 +387,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_combo_integration" {
   resource_id             = aws_api_gateway_resource.pedido_pedidoId_combo.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_combo_post.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}/combo" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/pedido/{pedidoId}/combo" # Substitua pelo URL real
   integration_http_method = "POST"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -417,7 +417,7 @@ resource "aws_api_gateway_integration" "pedido_pedidoId_combo_comboId_integratio
   resource_id             = aws_api_gateway_resource.pedido_pedidoId_combo_comboId.id
   http_method             = aws_api_gateway_method.pedido_pedidoId_combo_comboId_delete.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/pedido/{pedidoId}/combo/{comboId}" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/pedido/{pedidoId}/combo/{comboId}" # Substitua pelo URL real
   integration_http_method = "DELETE"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -457,7 +457,7 @@ resource "aws_api_gateway_integration" "preparacao_pedido_proximo_integration" {
   resource_id             = aws_api_gateway_resource.preparacao_pedido_proximo.id
   http_method             = aws_api_gateway_method.preparacao_pedido_proximo_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/preparacao/proximo" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/preparacao/proximo" # Substitua pelo URL real
   integration_http_method = "GET"
 }
 
@@ -489,7 +489,7 @@ resource "aws_api_gateway_integration" "preparacao_pedido_pedidoId_iniciar_prepa
   resource_id             = aws_api_gateway_resource.preparacao_pedido_pedidoId_iniciar_preparacao.id
   http_method             = aws_api_gateway_method.preparacao_pedido_pedidoId_iniciar_preparacao_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/preparacao/pedido/{pedidoId}/iniciar-preparacao" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/preparacao/pedido/{pedidoId}/iniciar-preparacao" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -518,7 +518,7 @@ resource "aws_api_gateway_integration" "preparacao_pedido_pedidoId_finalizar_pre
   resource_id             = aws_api_gateway_resource.preparacao_pedido_pedidoId_finalizar_preparacao.id
   http_method             = aws_api_gateway_method.preparacao_pedido_pedidoId_finalizar_preparacao_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/preparacao/pedido/{pedidoId}/finalizar-preparacao" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/preparacao/pedido/{pedidoId}/finalizar-preparacao" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -547,7 +547,7 @@ resource "aws_api_gateway_integration" "preparacao_pedido_pedidoId_entregar_inte
   resource_id             = aws_api_gateway_resource.preparacao_pedido_pedidoId_entregar.id
   http_method             = aws_api_gateway_method.preparacao_pedido_pedidoId_entregar_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/preparacao/pedido/{pedidoId}/entregar" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/preparacao/pedido/{pedidoId}/entregar" # Substitua pelo URL real
   integration_http_method = "PUT"
   request_parameters = {
     "integration.request.path.pedidoId" = "method.request.path.pedidoId"
@@ -579,7 +579,7 @@ resource "aws_api_gateway_integration" "produto_listar_integration" {
   resource_id             = aws_api_gateway_resource.produto_listar.id
   http_method             = aws_api_gateway_method.produto_listar_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/listar" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/produto/listar" # Substitua pelo URL real
   integration_http_method = "GET"
 }
 
@@ -611,7 +611,7 @@ resource "aws_api_gateway_integration" "produto_buscar_id_integration" {
   resource_id             = aws_api_gateway_resource.produto_buscar_id.id
   http_method             = aws_api_gateway_method.produto_buscar_id_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/buscar/{id}" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/produto/buscar/{id}" # Substitua pelo URL real
   integration_http_method = "GET"
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -640,7 +640,7 @@ resource "aws_api_gateway_integration" "produto_listar_categoria_integration" {
   resource_id             = aws_api_gateway_resource.produto_listar_categoria.id
   http_method             = aws_api_gateway_method.produto_listar_categoria_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/listar/{categoria}" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/produto/listar/{categoria}" # Substitua pelo URL real
   integration_http_method = "GET"
   request_parameters = {
     "integration.request.path.categoria" = "method.request.path.categoria"
@@ -675,7 +675,7 @@ resource "aws_api_gateway_integration" "produto_remover_id_integration" {
   resource_id             = aws_api_gateway_resource.produto_remover_id.id
   http_method             = aws_api_gateway_method.produto_remover_id_delete.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/remover/{id}" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/produto/remover/{id}" # Substitua pelo URL real
   integration_http_method = "DELETE"
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -702,7 +702,7 @@ resource "aws_api_gateway_integration" "produto_cadastrar_integration" {
   resource_id             = aws_api_gateway_resource.produto_cadastrar.id
   http_method             = aws_api_gateway_method.produto_cadastrar_post.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/cadastrar" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/produto/cadastrar" # Substitua pelo URL real
   integration_http_method = "POST"
 }
 
@@ -725,7 +725,7 @@ resource "aws_api_gateway_integration" "produto_atualizar_integration" {
   resource_id             = aws_api_gateway_resource.produto_atualizar.id
   http_method             = aws_api_gateway_method.produto_atualizar_put.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "${var.lb_endpoint}/produto/atualizar" # Substitua pelo URL real
+  uri                     = "https://${local.load_balancer_hostname}/produto/atualizar" # Substitua pelo URL real
   integration_http_method = "PUT"
 }
 

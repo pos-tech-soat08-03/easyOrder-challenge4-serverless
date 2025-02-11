@@ -41,10 +41,7 @@ data "aws_s3_bucket_object" "cliente_app_data" {
   key    = var.key_cliente_app
 }
 locals {
-  cliente_app_configs = jsondecode(data.aws_s3_bucket_object.cliente_app_data.body)
+  cliente_app_data     = jsondecode(data.aws_s3_bucket_object.cliente_app_data.body)
+  load_balancer_hostname = local.cliente_app_data.LoadBalancerHostname
 }
 
-variable "lb_endpoint" {
-  type    = string
-  default = cliente_app_configs.LoadBalancerHostname
-} 
