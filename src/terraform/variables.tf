@@ -64,6 +64,6 @@ locals {
 }
 
 locals {
-  core_app_data         = jsondecode(data.aws_s3_object.core_app_data.body)
-  load_balancer_core    = local.core_app_data.lb_hostname
+  core_app_data      = jsondecode(data.aws_s3_object.core_app_data.body)
+  load_balancer_core = local.core_app_data.lb_hostname
 }
