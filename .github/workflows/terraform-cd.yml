@@ -76,15 +76,13 @@ jobs:
       working-directory: src/terraform/
       run: |
           cat <<EOF > external_var.tfvars
-          bucket_database = "${{ github.event.inputs.aws_backend_bucket }}"
-          key_database    = "easyorder-database/terraform.tfstate"
           region          = "${{ github.event.inputs.aws_region }}"
-          db_name         = "${{ secrets.MYSQL_DATABASE }}"
-          db_username     = "${{ secrets.MYSQL_USER }}"
-          db_password     = "${{ secrets.MYSQL_PASSWORD }}"
           bucket_infra    = "${{ github.event.inputs.aws_backend_bucket }}"
           key_infra       = "easyorder-infra/terraform.tfstate"
           accountIdVoclabs= "${{ github.event.inputs.aws_account_id }}"
+          key_cliente_app  = "easyorder-apps/easyorder-app-cliente.json"
+          key_produto_app  = "easyorder-apps/easyorder-app-produto.json"
+          key_core_app     = "easyorder-apps/easyorder-app-core.json"
           EOF
     
     - name: Terraform Init

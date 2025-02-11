@@ -13,7 +13,7 @@ docs                        - documentações e guias de implementação
 src                         - diretório principal com arquivos .tf
 └── terraform
     ├── backend.tfvars      - configuração do backend do Terraform
-    ├── external_var.tfvars - configuração dos recursos da infraestrutura
+    ├── external_var.tfvars - configuração dos recursos Serverless
     └── *.tf                - arquivos de configuração do Terraform
 ```
 
@@ -21,22 +21,26 @@ src                         - diretório principal com arquivos .tf
 
 O repositório possui um workflow de CI/CD configurado com o Github Actions, que realiza a validação e deploy do RDS na AWS.
 
+### CI - Continuous Integration
+
 O workflow de CI é acionado a cada push no repositório, e executa as seguintes etapas:
 
+[As ultimas execuções do CI podem ser visualizadas nesse link](https://github.com/pos-tech-soat08-03/easyOrder-challenge4-serverless/actions/workflows/terraform-cd.yml)
 
+### CD - Continuous Deployment
 
 O workflow de CD é acionado manualmente, e executa as seguintes etapas:
 
-
+[As ultimas execuções do CD podem ser visualizadas nesse link](https://github.com/pos-tech-soat08-03/easyOrder-challenge4-serverless/actions/workflows/terraform-cd.yml)
 
 ## Subindo os recursos Serverless com o Github Actions (Produção)
 
 Para subir os recursos Serverless com o Github Actions, siga os passos abaixo:
 
 1. Acesse o repositório do Github e clique na aba `Actions`, ou acesse diretamente o link abaixo:
- https://github.com/pos-tech-soat08-03/easyOrder-challenge3-serverless/actions
+https://github.com/pos-tech-soat08-03/easyOrder-challenge4-serverless/actions
 
-1. Clique no workflow `xxxxxx` e em seguida clique no botão `Run workflow`
+2. Clique no workflow `Terraform CD - Deploy Serverless` e em seguida clique no botão `Run workflow`
 
 O workflow irá solicitar as chaves de acesso da AWS, que serão obtidas do ambiente do AWS Labs, e também o nome do bucket anteriormente criado no S3, que  armazena o estado do Terraform da Infraestrutura necessária para a subida dos Serviços:
 
@@ -49,7 +53,7 @@ aws_backend_bucket: <AWS S3 Bucket para armazenamento do estado do Terraform>
 aws_region: <'AWS Region>
 ```
 
-Ao final da execução do workflow, os recursos Serveless (API Gateway, Cognito e Lambda) serão criados na AWS, e o estado do Terraform com dados dos recursos serão armazenados no bucket S3 (mesmo utilizado na Infraestrutura).
+Ao final da execução do workflow, os recursos Serveless (API Gateway) serão criados na AWS, e o estado do Terraform com dados dos recursos serão armazenados no bucket S3 (mesmo utilizado na Infraestrutura e Aplicações).
 
 ## Subindo os recursos Serverless manualmente (Desenvolvimento)
 
@@ -74,12 +78,7 @@ region = "us-east-1"
 ``` hcl
 bucket_infra = "<adicione aqui o nome do bucket>"
 key_infra    = "easyorder-infra/terraform.tfstate"
-bucket_database = "<adicione aqui o nome do bucket>"
-key_database    = "easyorder-database/terraform.tfstate"
 region       = "us-east-1"
-db_name      = "easyorder_database_schema"
-db_username  = "<adicione aqui o nome do usuario banco de dados>"
-db_password  = "<adicione aqui o password do banco de dados>"
 ``` 
 
 4. Execute os seguintes comandos, no diretório `src/terraform`:
@@ -96,11 +95,11 @@ terraform plan -var-file=external_var.tfvars
 terraform apply -var-file=external_var.tfvars -auto-approve
 ``` 
 
-Com essa sequência de comandos, os recursos Serverless serão criado, e o estado do Terraform será armazenado no bucket criado no S3, na chave `easyorder-database/terraform.tfstate`. As informações essenciais também serão apresentadas no output do comando.
+Com essa sequência de comandos, os recursos Serverless serão criado, e o estado do Terraform será armazenado no bucket criado no S3. As informações essenciais também serão apresentadas no output do comando.
 
-## Destruindo o RDS
+## Destruindo os recursos Serverless
 
-Para destruir a infraestrutura, execute o comando abaixo no diretório `src/terraform`:
+Para destruir os recursos Serverless, execute o comando abaixo no diretório `src/terraform`:
 
 ``` bash
 terraform destroy -var-file=external_var.tfvars
@@ -108,5 +107,11 @@ terraform destroy -var-file=external_var.tfvars
 
 ## Documentação
 
-Para mais informações sobre a arquitetura da solução, verifique no repositório do desafio 3 (aplicação):
-https://github.com/pos-tech-soat08-03/easyOrder-challenge3-application
+Para mais informações sobre a arquitetura, verifique o readme dos outros repositorios:
+
+Infraestrutura: https://github.com/pos-tech-soat08-03/easyOrder-challenge4-infrastructure
+
+Microserviços (aplicações):
+- Cliente https://github.com/pos-tech-soat08-03/easyOrder-challenge4-app-cliente
+- Produto https://github.com/pos-tech-soat08-03/easyOrder-challenge4-app-produto
+- Core (Pedido, Pagamento e Preparação) https://github.com/pos-tech-soat08-03/easyOrder-challenge4-app-core
