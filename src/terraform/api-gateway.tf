@@ -16,7 +16,7 @@ resource "aws_api_gateway_integration" "root_get_integration" {
   resource_id             = aws_api_gateway_rest_api.api_gateway.root_resource_id
   http_method             = aws_api_gateway_method.root_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "http://${local.load_balancer_cliente}/"
+  uri                     = "http://${local.load_balancer_core}/"
   integration_http_method = "GET"
 }
 
