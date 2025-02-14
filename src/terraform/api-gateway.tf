@@ -454,7 +454,7 @@ resource "aws_api_gateway_integration" "preparacao_pedido_proximo_integration" {
   resource_id             = aws_api_gateway_resource.preparacao_pedido_proximo.id
   http_method             = aws_api_gateway_method.preparacao_pedido_proximo_get.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "http://${local.load_balancer_core}/preparacao/proximo" # Substitua pelo URL real
+  uri                     = "http://${local.load_balancer_core}/preparacao/pedido/proximo" # Substitua pelo URL real
   integration_http_method = "GET"
 }
 
